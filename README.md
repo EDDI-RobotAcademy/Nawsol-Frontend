@@ -1,2 +1,1 @@
-# Nawsol-Frontend
-Nawsol-Frontend
+# NaSol-Frontend
