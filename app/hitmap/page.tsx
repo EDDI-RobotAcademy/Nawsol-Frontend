@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation";
+import {useAuth} from "@/contexts/AuthContext";
+import {apiFetch} from "@/utils/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface ApiResponse {
@@ -52,7 +53,7 @@ export default function HeatmapPage() {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch(
+                const response = await apiFetch(
                     `${process.env.NEXT_PUBLIC_API_BASE_URL}/documents-multi-agents/result`,
                     {
                         credentials: "include",
@@ -93,10 +94,10 @@ export default function HeatmapPage() {
         if (!data?.expense) return [];
 
         const categories = Object.keys(data.expense);
-        const result = categories.map((category) => {
+        return categories.map((category) => {
             const items = Object.entries(data.expense[category])
                 .filter(([, value]) => value > 0)
-                .map(([name, value]) => ({ name, value }))
+                .map(([name, value]) => ({name, value}))
                 .sort((a, b) => b.value - a.value);
 
             const total = items.reduce((sum, item) => sum + item.value, 0);
@@ -107,9 +108,7 @@ export default function HeatmapPage() {
                 items,
             };
         }).filter(item => item.total > 0)
-          .sort((a, b) => b.total - a.total);
-
-        return result;
+            .sort((a, b) => b.total - a.total);
     };
 
     // 색상 강도 계산 (0-1 사이 값)

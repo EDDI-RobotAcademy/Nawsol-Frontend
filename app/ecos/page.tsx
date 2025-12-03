@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/utils/api";
 import EcosHeader from "../../components/ecos/EcosHeader";
 import EcosTabs from "../../components/ecos/EcosTabs";
 import EcosContent from "../../components/ecos/EcosContent";
@@ -84,7 +85,7 @@ export default function EcosPage() {
                     endpoint = `/ecos/interest_rate_by_date/${selectedMonth}`;
                 }
 
-                const response = await fetch(
+                const response = await apiFetch(
                     `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint}`,
                     {
                         credentials: "include",

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/utils/api";
 import { AccountResponse } from "@/types/account";
 import Image from "next/image";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
@@ -40,7 +41,7 @@ export default function MyPage() {
                 setError(null);
 
                 // 방법 1: 세션에서 현재 사용자 정보를 가져오는 API 시도
-                let response = await fetch(
+                let response = await apiFetch(
                     `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/me`,
                     {
                         credentials: "include",
@@ -50,7 +51,7 @@ export default function MyPage() {
                 // 404면 다른 방법 시도
                 if (response.status === 404) {
                     // 방법 2: authentication/status에서 사용자 정보 가져오기
-                    const statusResponse = await fetch(
+                    const statusResponse = await apiFetch(
                         `${process.env.NEXT_PUBLIC_API_BASE_URL}/authentication/status`,
                         {
                             credentials: "include",
@@ -60,7 +61,7 @@ export default function MyPage() {
 
                     // status API에서 oauth_type과 oauth_id를 가져올 수 있다면
                     if (statusData.oauth_type && statusData.oauth_id) {
-                        response = await fetch(
+                        response = await apiFetch(
                             `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/${statusData.oauth_type}/${statusData.oauth_id}`,
                             {
                                 credentials: "include",
@@ -151,7 +152,7 @@ export default function MyPage() {
                 payload.target_amount = editForm.target_amount;
             }
 
-            const response = await fetch(
+            const response = await apiFetch(
                 `${process.env.NEXT_PUBLIC_API_BASE_URL}/account/${account.session_id}`,
                 {
                     method: "PUT",

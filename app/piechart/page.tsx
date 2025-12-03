@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/utils/api";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
@@ -75,7 +76,7 @@ export default function PieChartPage() {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch(
+                const response = await apiFetch(
                     `${process.env.NEXT_PUBLIC_API_BASE_URL}/documents-multi-agents/result`,
                     {
                         credentials: "include",

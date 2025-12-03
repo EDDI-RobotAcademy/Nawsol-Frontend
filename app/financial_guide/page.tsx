@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { apiFetch } from "@/utils/api";
 
 interface MarkdownRendererProps {
     content: string;
@@ -253,7 +254,7 @@ export default function FinancialGuidePage() {
             setError(null);
             setResult(null);
 
-            const response = await fetch(
+            const response = await apiFetch(
                 `${process.env.NEXT_PUBLIC_API_BASE_URL}/documents-multi-agents/financial-guide?now_mon=${nowMonNum}&tar_mon=${tarMonNum}`,
                 {
                     method: "GET",

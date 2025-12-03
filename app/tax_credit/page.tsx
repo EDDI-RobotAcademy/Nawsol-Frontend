@@ -2,20 +2,17 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/utils/api";
 import TaxCreditHeader from "../../components/tax-credit/TaxCreditHeader";
 import TaxCreditTabs from "../../components/tax-credit/TaxCreditTabs";
 import TaxCreditContent from "../../components/tax-credit/TaxCreditContent";
-import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function TaxCreditPage() {
     const [activeTab, setActiveTab] = useState<"detail" | "checklist">("detail");
     const [result, setResult] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { isLoggedIn } = useAuth();
-    const router = useRouter();
-
+    useRouter();
     // API 요청 취소를 위한 AbortController ref
     const abortControllerRef = useRef<AbortController | null>(null);
     // 첫 마운트 여부 체크
@@ -45,7 +42,7 @@ export default function TaxCreditPage() {
                         ? "/documents-multi-agents/tax-credit/checklist"
                         : "/documents-multi-agents/tax-credit";
 
-                const response = await fetch(
+                const response = await apiFetch(
                     `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoint}`,
                     {
                         credentials: "include",

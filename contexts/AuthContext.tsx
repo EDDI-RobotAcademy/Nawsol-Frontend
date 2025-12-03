@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { apiFetch } from "@/utils/api";
 
 interface AuthContextType {
     isLoggedIn: boolean;
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const refresh = () => {
         console.log("[Auth] Checking login status...");
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/authentication/status`, {
+        apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/authentication/status`, {
             credentials: "include",
         })
             .then((res) => res.json())
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("[Auth] csrfToken is : ",csrfToken);
 
 
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/authentication/logout`, {
+        apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/authentication/logout`, {
             method: "POST",
             credentials: "include",
             headers: {
@@ -59,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const depart = () => {
         console.log("[Auth] Departing (회원탈퇴)...");
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/account/departure`, {
+        apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/account/departure`, {
             method: "POST",
             credentials: "include", // 쿠키 포함 (session_id 전송)
         })

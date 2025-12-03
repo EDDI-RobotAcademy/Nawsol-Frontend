@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/utils/api";
 
 export default function Navbar() {
     const { isLoggedIn, logout } = useAuth();
@@ -19,7 +20,7 @@ export default function Navbar() {
     };
 
     const handleSessionOut = () => {
-        fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/account/session_out`,
+        apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/account/session_out`,
             {method: "DELETE",
                 credentials: "include"
             }).then(r => r);

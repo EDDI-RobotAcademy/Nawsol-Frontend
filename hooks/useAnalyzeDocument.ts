@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiFetch } from "@/utils/api";
 
 // 쿠키 설정 헬퍼 함수
 function setCookie(name: string, value: string, days: number = 1) {
@@ -28,7 +29,7 @@ export function useAnalyzeDocument() {
             .find((row) => row.startsWith("csrf_token="))
             ?.split("=")[1];
 
-            const res = await fetch(
+            const res = await apiFetch(
                 `${process.env.NEXT_PUBLIC_API_BASE_URL}/documents-multi-agents/analyze`,
                 {
                     method: "POST",
@@ -68,7 +69,7 @@ export function useAnalyzeDocument() {
         setError(null);
 
         try {
-            const res = await fetch(
+            const res = await apiFetch(
                 `${process.env.NEXT_PUBLIC_API_BASE_URL}/documents-multi-agents/analyze_form`,
                 {
                     method: "POST",

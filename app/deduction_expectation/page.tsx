@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiFetch } from "@/utils/api";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface MarkdownRendererProps {
@@ -215,7 +216,7 @@ export default function AssetsSimulationPage() {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch(
+                const response = await apiFetch(
                     `${process.env.NEXT_PUBLIC_API_BASE_URL}/documents-multi-agents/deduction-expectation`,
                     {
                         credentials: "include",
