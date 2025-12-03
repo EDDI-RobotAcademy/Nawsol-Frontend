@@ -129,6 +129,15 @@ export default function Navbar() {
                                         >
                                             🔥 월별 지출 히트맵
                                         </Link>
+                                        {isLoggedIn ? (
+                                            <Link
+                                                href="/hitmap"
+                                                className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
+                                                onClick={() => setIsMobileVisualizeOpen(false)}
+                                            >
+                                                📈 금리/환율 동향
+                                            </Link>
+                                        ) : (<></>)}
                                     </div>
                                 </div>
                             )}
@@ -248,7 +257,17 @@ export default function Navbar() {
                                     onClick={() => setIsMobileVisualizeOpen(false)}
                                 >
                                     🔥 월별 지출 히트맵
+
                                 </Link>
+                                {isLoggedIn ? (
+                                    <Link
+                                        href="/hitmap"
+                                        className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
+                                        onClick={() => setIsMobileVisualizeOpen(false)}
+                                    >
+                                        📈 금리/환율 동향
+                                    </Link>
+                                ) : (<></>)}
                             </div>
                         )}
                     </div>
