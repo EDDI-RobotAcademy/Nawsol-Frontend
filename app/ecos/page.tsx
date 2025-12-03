@@ -18,20 +18,15 @@ interface ExchangeRateItem {
 // 환율 데이터는 배열로 직접 반환
 type ExchangeRateData = ExchangeRateItem[];
 
-// 금리 데이터는 기존 형식 유지 (나중에 변경될 수 있음)
+// 금리 데이터도 배열로 직접 반환
 interface InterestRateItem {
-    item_type: string;
-    time: string;
-    value: string;
+    interest_type: string;
+    interest_rate: number;
+    erm_date: string; // ISO date string
+    created_at: string;
 }
 
-interface InterestRateData {
-    source: {
-        source: string;
-    };
-    fetched_at: string;
-    items: InterestRateItem[];
-}
+type InterestRateData = InterestRateItem[];
 
 type EcosData = ExchangeRateData | InterestRateData;
 
@@ -86,7 +81,7 @@ export default function EcosPage() {
                     // 날짜를 YYYYMM 형식으로 사용
                     endpoint = `/ecos/exchange_rate_by_date/${selectedMonth}`;
                 } else {
-                    endpoint = "/ecos/interest_rate";
+                    endpoint = `/ecos/interest_rate_by_date/${selectedMonth}`;
                 }
 
                 const response = await fetch(
@@ -145,14 +140,12 @@ export default function EcosPage() {
                 <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg overflow-hidden">
                     <EcosHeader />
                     <EcosTabs activeTab={activeTab} onTabChange={handleTabChange} />
-                    {activeTab === "exchange_rate" && (
-                        <div className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
-                            <MonthNavigator
-                                currentMonth={selectedMonth}
-                                onMonthChange={setSelectedMonth}
-                            />
-                        </div>
-                    )}
+                    <div className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
+                        <MonthNavigator
+                            currentMonth={selectedMonth}
+                            onMonthChange={setSelectedMonth}
+                        />
+                    </div>
                     <EcosContent loading={loading} error={error} data={data} activeTab={activeTab} />
                 </div>
             </div>

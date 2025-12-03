@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import {
     LineChart,
@@ -9,7 +9,6 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend,
     ResponsiveContainer,
 } from "recharts";
 
@@ -23,20 +22,15 @@ interface ExchangeRateItem {
 
 type ExchangeRateData = ExchangeRateItem[];
 
-// 금리 데이터 타입 (기존 형식)
+// 금리 데이터 타입
 interface InterestRateItem {
-    item_type: string;
-    time: string;
-    value: string;
+    interest_type: string;
+    interest_rate: number;
+    erm_date: string; // ISO date string
+    created_at: string;
 }
 
-interface InterestRateData {
-    source: {
-        source: string;
-    };
-    fetched_at: string;
-    items: InterestRateItem[];
-}
+type InterestRateData = InterestRateItem[];
 
 type EcosData = ExchangeRateData | InterestRateData;
 
@@ -73,55 +67,30 @@ function prepareExchangeRateChartData(data: ExchangeRateData): Array<{ date: str
         }));
 }
 
-// 금리 데이터를 차트 형식으로 변환 (기존 로직 유지)
-function prepareInterestRateChartData(items: InterestRateItem[]): Array<{ week: string; [key: string]: string | number }> {
-    const grouped: { [key: string]: { [itemType: string]: number } } = {};
+// 금리 데이터를 차트 형식으로 변환
+function prepareInterestRateChartData(data: InterestRateData): Array<{ date: string; [interestType: string]: string | number }> {
+    // 날짜별로 그룹화
+    const dateMap = new Map<string, { [interestType: string]: number }>();
 
-    items.forEach((item) => {
-        // time 형식: "20251202" -> Date 객체로 변환
-        const year = parseInt(item.time.substring(0, 4));
-        const month = parseInt(item.time.substring(4, 6)) - 1;
-        const day = parseInt(item.time.substring(6, 8));
-        const date = new Date(year, month, day);
+    data.forEach((item) => {
+        const date = new Date(item.erm_date);
+        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
-        // 주의 시작일(월요일)을 기준으로 주 그룹 키 생성
-        const dayOfWeek = date.getDay();
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        const monday = new Date(date);
-        monday.setDate(date.getDate() + mondayOffset);
-
-        const weekKey = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
-
-        if (!grouped[weekKey]) {
-            grouped[weekKey] = {};
+        if (!dateMap.has(dateKey)) {
+            dateMap.set(dateKey, {});
         }
 
-        const value = parseFloat(item.value);
-        if (!isNaN(value)) {
-            if (grouped[weekKey][item.item_type]) {
-                grouped[weekKey][item.item_type] = (grouped[weekKey][item.item_type] + value) / 2;
-            } else {
-                grouped[weekKey][item.item_type] = value;
-            }
-        }
+        const dayData = dateMap.get(dateKey)!;
+        dayData[item.interest_type] = item.interest_rate;
     });
 
-    const itemTypes = new Set<string>();
-    items.forEach((item) => itemTypes.add(item.item_type));
-
-    return Object.keys(grouped)
-        .sort()
-        .map((weekKey) => {
-            const dataPoint: { week: string; [key: string]: string | number } = {
-                week: weekKey,
-            };
-
-            itemTypes.forEach((itemType) => {
-                dataPoint[itemType] = grouped[weekKey][itemType] || 0;
-            });
-
-            return dataPoint;
-        });
+    // 날짜순으로 정렬하여 배열로 변환
+    return Array.from(dateMap.entries())
+        .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+        .map(([date, rates]) => ({
+            date,
+            ...rates,
+        }));
 }
 
 // 색상 팔레트
@@ -169,21 +138,104 @@ export default function EcosContent({ loading, error, data, activeTab }: EcosCon
 
     // 금리 데이터 처리
     const interestRateChartData = useMemo(() => {
-        if (activeTab !== "interest_rate" || !data || !("items" in data) || !data.items || data.items.length === 0) {
+        if (activeTab !== "interest_rate" || !data || !Array.isArray(data) || data.length === 0) {
             return [];
         }
-        return prepareInterestRateChartData((data as InterestRateData).items);
+        return prepareInterestRateChartData(data as InterestRateData);
     }, [data, activeTab]);
 
     const interestRateTypes = useMemo(() => {
-        if (activeTab !== "interest_rate" || !data || !("items" in data) || !data.items) {
+        if (activeTab !== "interest_rate" || !data || !Array.isArray(data)) {
             return [];
         }
-        return Array.from(new Set((data as InterestRateData).items.map((item) => item.item_type)));
+        return Array.from(new Set((data as InterestRateData).map((item) => item.interest_type)));
     }, [data, activeTab]);
 
     // 현재 탭에 맞는 차트 데이터와 타입
     const chartData = activeTab === "exchange_rate" ? exchangeRateChartData : interestRateChartData;
+    const dataTypes = activeTab === "exchange_rate" ? exchangeRateTypes : interestRateTypes;
+
+    // 각 항목의 min/max 계산 및 Y축 domain 설정
+    const itemDomains = useMemo(() => {
+        const domains: Record<string, [number, number]> = {};
+        
+        if (!chartData || chartData.length === 0) return domains;
+
+        // 금리 데이터는 모든 항목의 값을 통합해서 하나의 domain 계산
+        if (activeTab === "interest_rate") {
+            const allValues: number[] = [];
+            chartData.forEach((item) => {
+                const record = item as Record<string, number | string | undefined>;
+                dataTypes.forEach((itemName) => {
+                    const value = record[itemName];
+                    if (typeof value === "number") {
+                        allValues.push(value);
+                    }
+                });
+            });
+
+            if (allValues.length > 0) {
+                const min = Math.min(...allValues);
+                const max = Math.max(...allValues);
+                const range = max - min;
+                const padding = range * 0.1; // 10% 패딩
+                const commonDomain: [number, number] = [
+                    Math.max(0, min - padding),
+                    max + padding,
+                ];
+                // 모든 금리 항목에 같은 domain 적용
+                dataTypes.forEach((itemName) => {
+                    domains[itemName] = commonDomain;
+                });
+            }
+        } else {
+            // 환율 데이터는 각 항목별로 독립적인 domain 계산
+            dataTypes.forEach((itemName) => {
+                const values: number[] = [];
+                chartData.forEach((item) => {
+                    const record = item as Record<string, number | string | undefined>;
+                    const value = record[itemName];
+                    if (typeof value === "number") {
+                        values.push(value);
+                    }
+                });
+
+                if (values.length > 0) {
+                    const min = Math.min(...values);
+                    const max = Math.max(...values);
+                    const range = max - min;
+                    const padding = range * 0.1; // 10% 패딩
+                    domains[itemName] = [
+                        Math.max(0, min - padding),
+                        max + padding,
+                    ];
+                }
+            });
+        }
+
+        return domains;
+    }, [chartData, dataTypes, activeTab]);
+
+    // 각 항목의 표시/숨김 상태 관리
+    const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
+
+    // 탭이 변경되거나 데이터 타입이 변경되면 숨김 상태 초기화
+    useEffect(() => {
+        setHiddenItems(new Set());
+    }, [activeTab, dataTypes.join(",")]);
+
+    // 항목 토글 함수
+    const toggleItem = (itemName: string) => {
+        setHiddenItems((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(itemName)) {
+                newSet.delete(itemName);
+            } else {
+                newSet.add(itemName);
+            }
+            return newSet;
+        });
+    };
     if (loading) {
         return (
             <div className="px-6 py-8 min-h-[300px]">
@@ -224,10 +276,7 @@ export default function EcosContent({ loading, error, data, activeTab }: EcosCon
     }
 
     // 데이터가 없는 경우 체크
-    const hasNoData =
-        activeTab === "exchange_rate"
-            ? !data || !Array.isArray(data) || data.length === 0
-            : !data || !("items" in data) || !data.items || data.items.length === 0;
+    const hasNoData = !data || !Array.isArray(data) || data.length === 0;
 
     if (hasNoData) {
         return (
@@ -251,13 +300,6 @@ export default function EcosContent({ loading, error, data, activeTab }: EcosCon
 
     return (
         <div className="px-6 py-8 min-h-[300px]">
-            {activeTab === "interest_rate" && "fetched_at" in data && (
-                <div className="mb-4">
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        최종 업데이트: {data.fetched_at ? new Date(data.fetched_at).toLocaleString("ko-KR") : "알 수 없음"}
-                    </p>
-                </div>
-            )}
 
             {chartData.length > 0 ? (
                 <div className="mt-6">
@@ -268,14 +310,13 @@ export default function EcosContent({ loading, error, data, activeTab }: EcosCon
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                             <XAxis
-                                dataKey={activeTab === "exchange_rate" ? "date" : "week"}
+                                dataKey="date"
                                 stroke="#6b7280"
                                 tick={{ fill: "#6b7280" }}
                                 angle={-45}
                                 textAnchor="end"
                                 height={80}
                             />
-                            <YAxis stroke="#6b7280" tick={{ fill: "#6b7280" }} />
                             <Tooltip
                                 contentStyle={{
                                     backgroundColor: "white",
@@ -283,33 +324,109 @@ export default function EcosContent({ loading, error, data, activeTab }: EcosCon
                                     borderRadius: "8px",
                                 }}
                             />
-                            <Legend />
                             {activeTab === "exchange_rate"
-                                ? exchangeRateTypes.map((exchangeType) => (
-                                      <Line
-                                          key={exchangeType}
-                                          type="monotone"
-                                          dataKey={exchangeType}
-                                          name={EXCHANGE_RATE_NAMES[exchangeType] || exchangeType}
-                                          stroke={EXCHANGE_RATE_COLORS[exchangeType] || COLORS[0]}
-                                          strokeWidth={2}
-                                          dot={{ r: 4 }}
-                                          activeDot={{ r: 6 }}
-                                      />
-                                  ))
-                                : interestRateTypes.map((itemType, index) => (
-                                      <Line
-                                          key={itemType}
-                                          type="monotone"
-                                          dataKey={itemType}
-                                          stroke={COLORS[index % COLORS.length]}
-                                          strokeWidth={2}
-                                          dot={{ r: 4 }}
-                                          activeDot={{ r: 6 }}
-                                      />
-                                  ))}
+                                ? exchangeRateTypes.map((exchangeType, index) => {
+                                      const yAxisId = `yAxis-${exchangeType}`;
+                                      const domain = itemDomains[exchangeType] || [0, 100];
+                                      const isHidden = hiddenItems.has(exchangeType);
+
+                                      return (
+                                          <g key={exchangeType}>
+                                              <YAxis
+                                                  yAxisId={yAxisId}
+                                                  orientation={index === 0 ? "left" : "right"}
+                                                  stroke={EXCHANGE_RATE_COLORS[exchangeType] || COLORS[0]}
+                                                  tick={{ fill: EXCHANGE_RATE_COLORS[exchangeType] || COLORS[0] }}
+                                                  domain={domain}
+                                                  width={60}
+                                                  hide={true}
+                                              />
+                                              <Line
+                                                  yAxisId={yAxisId}
+                                                  type="monotone"
+                                                  dataKey={exchangeType}
+                                                  name={EXCHANGE_RATE_NAMES[exchangeType] || exchangeType}
+                                                  stroke={EXCHANGE_RATE_COLORS[exchangeType] || COLORS[0]}
+                                                  strokeWidth={2}
+                                                  dot={{ r: 4 }}
+                                                  activeDot={{ r: 6 }}
+                                                  hide={isHidden}
+                                              />
+                                          </g>
+                                      );
+                                  })
+                                : (() => {
+                                      // 금리는 하나의 공통 Y축 사용
+                                      const commonYAxisId = "yAxis-interest-rate";
+                                      const firstDomain = interestRateTypes.length > 0 
+                                          ? itemDomains[interestRateTypes[0]] || [0, 100]
+                                          : [0, 100];
+
+                                      return (
+                                          <>
+                                              <YAxis
+                                                  yAxisId={commonYAxisId}
+                                                  orientation="left"
+                                                  stroke="#6b7280"
+                                                  tick={{ fill: "#6b7280" }}
+                                                  domain={firstDomain}
+                                                  width={60}
+                                                  hide={true}
+                                              />
+                                              {interestRateTypes.map((interestType, index) => {
+                                                  const isHidden = hiddenItems.has(interestType);
+                                                  return (
+                                                      <Line
+                                                          key={interestType}
+                                                          yAxisId={commonYAxisId}
+                                                          type="monotone"
+                                                          dataKey={interestType}
+                                                          name={interestType}
+                                                          stroke={COLORS[index % COLORS.length]}
+                                                          strokeWidth={2}
+                                                          dot={{ r: 4 }}
+                                                          activeDot={{ r: 6 }}
+                                                          hide={isHidden}
+                                                      />
+                                                  );
+                                              })}
+                                          </>
+                                      );
+                                  })()}
                         </LineChart>
                     </ResponsiveContainer>
+                    {/* 커스텀 범례 */}
+                    <div className="flex flex-wrap justify-center gap-4 mt-4">
+                        {dataTypes.map((itemName, index) => {
+                            const displayName =
+                                activeTab === "exchange_rate"
+                                    ? EXCHANGE_RATE_NAMES[itemName as keyof typeof EXCHANGE_RATE_NAMES] || itemName
+                                    : itemName;
+                            const color =
+                                activeTab === "exchange_rate"
+                                    ? EXCHANGE_RATE_COLORS[itemName as keyof typeof EXCHANGE_RATE_COLORS] || COLORS[0]
+                                    : COLORS[index % COLORS.length];
+                            const isHidden = hiddenItems.has(itemName);
+
+                            return (
+                                <button
+                                    key={itemName}
+                                    onClick={() => toggleItem(itemName)}
+                                    className="flex items-center gap-2 px-3 py-1 rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                    style={{
+                                        opacity: isHidden ? 0.3 : 1,
+                                        textDecoration: isHidden ? "line-through" : "none",
+                                    }}
+                                >
+                                    <div
+                                        className="w-4 h-4 rounded"
+                                        style={{ backgroundColor: color }}
+                                    />
+                                    <span className="text-sm text-zinc-700 dark:text-zinc-300">{displayName}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             ) : (
                 <div className="text-center py-10 text-zinc-500 dark:text-zinc-400">
@@ -327,26 +444,26 @@ export default function EcosContent({ loading, error, data, activeTab }: EcosCon
                         <tr className="bg-zinc-100 dark:bg-zinc-800">
                             {activeTab === "exchange_rate" ? (
                                 <>
-                                    <th className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
+                                    <th key="exchange-type" className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
                                         환율 타입
                                     </th>
-                                    <th className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
+                                    <th key="exchange-date" className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
                                         날짜
                                     </th>
-                                    <th className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
+                                    <th key="exchange-rate" className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
                                         환율
                                     </th>
                                 </>
                             ) : (
                                 <>
-                                    <th className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
-                                        항목
+                                    <th key="interest-type" className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
+                                        금리 타입
                                     </th>
-                                    <th className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
+                                    <th key="interest-date" className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
                                         날짜
                                     </th>
-                                    <th className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
-                                        값
+                                    <th key="interest-rate" className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-left">
+                                        금리
                                     </th>
                                 </>
                             )}
@@ -370,20 +487,20 @@ export default function EcosContent({ loading, error, data, activeTab }: EcosCon
                                               {formattedDate}
                                           </td>
                                           <td className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-zinc-700 dark:text-zinc-300 font-semibold">
-                                              {item.exchange_rate.toLocaleString("ko-KR", {
-                                                  minimumFractionDigits: 2,
-                                                  maximumFractionDigits: 2,
-                                              })}
+                                              {item.exchange_rate != null && typeof item.exchange_rate === "number"
+                                                  ? item.exchange_rate.toLocaleString("ko-KR", {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2,
+                                                    })
+                                                  : item.exchange_rate ?? "-"}
                                           </td>
                                       </tr>
                                   );
                               })
-                            : "items" in data && data.items
-                            ? (data as InterestRateData).items.map((item, index) => {
-                                  const year = item.time.substring(0, 4);
-                                  const month = item.time.substring(4, 6);
-                                  const day = item.time.substring(6, 8);
-                                  const formattedDate = `${year}-${month}-${day}`;
+                            : activeTab === "interest_rate" && Array.isArray(data)
+                            ? (data as InterestRateData).map((item, index) => {
+                                  const date = new Date(item.erm_date);
+                                  const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
                                   return (
                                       <tr
@@ -391,13 +508,18 @@ export default function EcosContent({ loading, error, data, activeTab }: EcosCon
                                           className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                                       >
                                           <td className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-zinc-700 dark:text-zinc-300">
-                                              {item.item_type}
+                                              {item.interest_type}
                                           </td>
                                           <td className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-zinc-700 dark:text-zinc-300">
                                               {formattedDate}
                                           </td>
                                           <td className="border border-zinc-300 dark:border-zinc-700 px-4 py-2 text-zinc-700 dark:text-zinc-300 font-semibold">
-                                              {item.value}
+                                              {item.interest_rate != null && typeof item.interest_rate === "number"
+                                                  ? item.interest_rate.toLocaleString("ko-KR", {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2,
+                                                    })
+                                                  : item.interest_rate ?? "-"}
                                           </td>
                                       </tr>
                                   );

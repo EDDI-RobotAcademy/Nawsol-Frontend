@@ -75,13 +75,13 @@ export default function MonthNavigator({ currentMonth, onMonthChange }: MonthNav
             </button>
             
             <div className="flex items-center gap-3">
-                <span className="text-sm text-zinc-500 dark:text-zinc-400 px-2">
+                <span className="text-sm text-zinc-500 dark:text-zinc-400 px-2" onClick={handlePrev}>
                     {prevMonth}
                 </span>
                 <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 px-4 py-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                     {currentMonth}
                 </span>
-                <span className="text-sm text-zinc-500 dark:text-zinc-400 px-2">
+                <span className="text-sm text-zinc-500 dark:text-zinc-400 px-2" onClick={handleNext}>
                     {nextMonth}
                 </span>
             </div>

@@ -131,7 +131,7 @@ export default function Navbar() {
                                         </Link>
                                         {isLoggedIn ? (
                                             <Link
-                                                href="/hitmap"
+                                                href="/ecos"
                                                 className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
                                                 onClick={() => setIsMobileVisualizeOpen(false)}
                                             >
@@ -261,7 +261,7 @@ export default function Navbar() {
                                 </Link>
                                 {isLoggedIn ? (
                                     <Link
-                                        href="/hitmap"
+                                        href="/ecos"
                                         className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
                                         onClick={() => setIsMobileVisualizeOpen(false)}
                                     >
