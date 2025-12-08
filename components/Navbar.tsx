@@ -13,6 +13,8 @@ export default function Navbar() {
     const [isMobileAnalysisOpen, setIsMobileAnalysisOpen] = useState(false);
     const [isVisualizeOpen, setIsVisualizeOpen] = useState(false);
     const [isMobileVisualizeOpen, setIsMobileVisualizeOpen] = useState(false);
+    const [isFinanceOpen, setIsFinanceOpen] = useState(false);
+    const [isMobileFinanceOpen, setIsMobileFinanceOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -134,7 +136,7 @@ export default function Navbar() {
                                             <Link
                                                 href="/ecos"
                                                 className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
-                                                onClick={() => setIsMobileVisualizeOpen(false)}
+                                                onClick={() => setIsVisualizeOpen(false)}
                                             >
                                                 📈 금리/환율 동향
                                             </Link>
@@ -143,7 +145,37 @@ export default function Navbar() {
                                 </div>
                             )}
                         </div>
-                        
+
+                        <div
+                            className="relative"
+                            onMouseEnter={() => setIsFinanceOpen(true)}
+                            onMouseLeave={() => setIsFinanceOpen(false)}
+                        >
+                            <button
+                                className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 hover:shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-1"
+                            >
+                                📈 재무 자료
+                                <span className={`transition-transform duration-200 ${isFinanceOpen ? 'rotate-180' : ''}`}>
+                                    ▼
+                                </span>
+                            </button>
+
+                            {isFinanceOpen && (
+                                <div className="absolute top-[calc(100%-2px)] left-0 w-56 z-50">
+                                    <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+                                        <div className="pt-1">
+                                            <Link
+                                                href="/etf"
+                                                className="block px-4 py-3 text-sm hover:bg-purple-600 transition-colors duration-200"
+                                            >
+                                                🥧 ETF 자료
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <Link 
                             href="/myPage" 
                             className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-indigo-600 hover:shadow-md transition-all duration-200 hover:scale-105"
@@ -269,6 +301,30 @@ export default function Navbar() {
                                         📈 금리/환율 동향
                                     </Link>
                                 ) : (<></>)}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 모바일 재무 자료 드롭다운 */ }
+                    <div>
+                        <button
+                            onClick={() => setIsMobileFinanceOpen(!isMobileFinanceOpen)}
+                            className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
+                        >
+                            <span>📈 재무 자료</span>
+                            <span className={`transition-transform duration-200 ${isMobileFinanceOpen ? 'rotate-180' : ''}`}>
+                                ▼
+                            </span>
+                        </button>
+                        {isMobileFinanceOpen && (
+                            <div className="mt-2 ml-4 space-y-2">
+                                <Link
+                                    href="/etf"
+                                    className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
+                                    onClick={() => setIsMobileFinanceOpen(false)}
+                                >
+                                    🥧 ETF 자료
+                                </Link>
                             </div>
                         )}
                     </div>
