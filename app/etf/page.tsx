@@ -1,24 +1,50 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useEtfData } from "@/hooks/useEftData";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+
 import { EtfTable } from "@/components/etf/EtfTable";
+import { DatePicker } from "@/components/DatePicker";
 import { EtfDisplayItem } from "@/types/etf";
 import { formatDateTime } from "@/utils/etfUtils";
+import {useEtfData} from "@/hooks/useEftData";
+
+// 오늘 날짜를 YYYYMMDD 형식으로 반환
+function getTodayDate(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+}
 
 export default function EtfPage() {
+    const router = useRouter();
+    const { user, isLoggedIn, loading: authLoading } = useAuth();
+    const [selectedDate, setSelectedDate] = useState<string>(getTodayDate());
     const { data, loading, error, fetchedAt, fetchEtfData, refetch } = useEtfData();
 
     // 페이지 로드 시 데이터 자동 조회
     useEffect(() => {
-        fetchEtfData();
-    }, [fetchEtfData]);
+        fetchEtfData(selectedDate);
+    }, [selectedDate]);
 
-    // 행 클릭 핸들러 (나중에 상세 페이지 연동)
+    // 날짜 변경 핸들러
+    const handleDateChange = (date: string) => {
+        setSelectedDate(date);
+    };
+
+    // 새로고침 핸들러
+    const handleRefresh = () => {
+        refetch(selectedDate);
+    };
+
+    // 행 클릭 핸들러 - 상세 페이지로 이동
     const handleRowClick = (item: EtfDisplayItem) => {
-        console.log("ETF 선택:", item);
-        // TODO: 상세 페이지로 이동
-        alert(`${item.bssIdxIdxNm} 상세 정보 (준비 중)`);
+        localStorage.setItem(`etf_${item.id}`, JSON.stringify(item));
+
+        router.push(`/etf/${item.id}`);
     };
 
     return (
@@ -27,31 +53,51 @@ export default function EtfPage() {
                 <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg overflow-hidden">
                     {/* 헤더 */}
                     <div className="bg-gradient-to-r from-green-500 to-teal-600 px-6 py-6">
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
                                 <h1 className="text-3xl font-bold text-white">ETF 정보</h1>
                                 <p className="text-green-100 mt-2">
                                     상장지수펀드(ETF) 상품 정보 조회
                                 </p>
+                                {isLoggedIn && user && (
+                                    <p className="text-green-200 text-sm mt-1">
+                                        {user.nickname || user.name}님 환영합니다
+                                    </p>
+                                )}
                             </div>
-                            <button
-                                onClick={refetch}
-                                disabled={loading}
-                                className="bg-white/20 hover:bg-white/30 disabled:bg-white/10 text-white font-semibold py-2 px-4 rounded-lg transition-colors backdrop-blur-sm"
-                            >
-                                {loading ? "조회 중..." : "새로고침"}
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={loading}
+                                    className="bg-white/20 hover:bg-white/30 disabled:bg-white/10 text-white font-semibold py-2 px-4 rounded-lg transition-colors backdrop-blur-sm"
+                                >
+                                    {loading ? "조회 중..." : "새로고침"}
+                                </button>
+                                <button
+                                    onClick={() => router.push("/")}
+                                    className="bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-4 rounded-lg transition-colors backdrop-blur-sm"
+                                >
+                                    홈으로
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    {/* 데이터 조회 시간 */}
-                    {fetchedAt && !loading && (
-                        <div className="px-6 py-3 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                데이터 조회 시간: {formatDateTime(fetchedAt)}
-                            </p>
+                    {/* 필터 영역 (날짜 선택) */}
+                    <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <DatePicker
+                                value={selectedDate}
+                                onChange={handleDateChange}
+                                label="조회 날짜"
+                            />
+                            {fetchedAt && !loading && (
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                    데이터 조회 시간: {formatDateTime(fetchedAt)}
+                                </p>
+                            )}
                         </div>
-                    )}
+                    </div>
 
                     {/* 로딩 상태 */}
                     {loading && (
@@ -93,7 +139,7 @@ export default function EtfPage() {
                                             {error}
                                         </p>
                                         <button
-                                            onClick={refetch}
+                                            onClick={handleRefresh}
                                             className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium"
                                         >
                                             다시 시도
@@ -124,7 +170,7 @@ export default function EtfPage() {
                                 조회된 데이터가 없습니다
                             </h3>
                             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                                ETF 데이터를 다시 조회해주세요.
+                                선택한 날짜에 ETF 데이터가 없습니다. 다른 날짜를 선택해주세요.
                             </p>
                         </div>
                     )}
@@ -132,10 +178,12 @@ export default function EtfPage() {
                     {/* 테이블 */}
                     {!loading && !error && data && data.length > 0 && (
                         <div className="px-6 py-6">
-                            <div className="mb-4">
-                                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                    총 <span className="font-semibold text-zinc-900 dark:text-zinc-100">{data.length}</span>개의 ETF 상품
-                                </p>
+                            <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                                총{" "}
+                                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                    {data.length}
+                                </span>
+                                개의 ETF 상품
                             </div>
                             <EtfTable data={data} onRowClick={handleRowClick} />
                         </div>
