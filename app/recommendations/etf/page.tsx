@@ -6,14 +6,13 @@ import { EtfDisplayItem } from "@/types/etf";
 import { formatDateTime } from "@/utils/etfUtils";
 
 interface EtfRecommendationResponse {
-    success: boolean;
+    source: string;
+    fetched_at: string;
     total_income: number;
     total_expense: number;
     available_amount: number;
     recommendation_reason: string;
-    recommended_etfs: any[];
-    data_source?: string;
-    is_logged_in?: boolean;
+    items: any[];
 }
 
 export default function EtfRecommendationPage() {
@@ -34,7 +33,7 @@ export default function EtfRecommendationPage() {
             setError(null);
 
             const response = await apiFetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/etf-recommendation/recommend`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/etf-recommendation/etf-info`,
                 {
                     method: "GET",
                     credentials: "include",
@@ -50,11 +49,6 @@ export default function EtfRecommendationPage() {
 
             const result: EtfRecommendationResponse = await response.json();
 
-            // 성공 여부 확인
-            if (!result.success) {
-                throw new Error(result.recommendation_reason || "ETF 추천에 실패했습니다.");
-            }
-
             // 추천 정보 설정
             setRecommendationInfo({
                 totalIncome: result.total_income || 0,
@@ -64,13 +58,13 @@ export default function EtfRecommendationPage() {
             });
 
             // ETF 데이터 가공
-            const displayItems: EtfDisplayItem[] = (result.recommended_etfs || []).map((item: any, index: number) => ({
+            const displayItems: EtfDisplayItem[] = (result.items || []).map((item: any, index: number) => ({
                 ...item,
                 id: `${item.basDt}-${item.bssIdxIdxNm}-${index}`,
             }));
 
             setData(displayItems);
-            setFetchedAt(new Date().toISOString());
+            setFetchedAt(result.fetched_at || new Date().toISOString());
         } catch (err) {
             console.error("[EtfRecommendation] Failed to fetch ETF recommendation:", err);
             setError(
