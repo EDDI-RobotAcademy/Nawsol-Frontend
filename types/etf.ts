@@ -1,30 +1,27 @@
-// ETF 상품 개별 아이템 타입
+// ETF 상품 개별 아이템 타입 (백엔드 응답 형식)
 export interface EtfItem {
-    fltRt: string;           // 등락률
-    nav: string;             // 순자산가치(NAV)
-    mkp: string;             // 시가
-    hipr: string;            // 고가
-    lopr: string;            // 저가
-    trqu: string;            // 거래량
-    trPrc: string;           // 거래대금
-    mrktTotAmt: string;      // 시가총액
-    nPptTotAmt: string;      // 순자산총액
-    stLstgCnt: string;       // 상장주식수
+    id: number;              // id
+    fltRt: number;           // 등락률
+    nav: number;             // 순자산가치(NAV)
+    mkp: number;             // 시가
+    hipr: number;            // 고가
+    lopr: number;            // 저가
+    trqu: number;            // 거래량
+    trPrc: number;           // 거래대금
+    mrktTotAmt: number;      // 시가총액
+    nPptTotAmt: number;      // 순자산총액
+    stLstgCnt: number;       // 상장주식수
     bssIdxIdxNm: string;     // 기초지수명
-    bssIdxClpr: string;      // 기초지수종가
-    basDt: string;           // 기준일자
-    clpr: string;            // 종가
-    vs: string;              // 대비
+    bssIdxClpr: number;      // 기초지수종가
+    basDt: string;           // 기준일자 (ISO datetime)
+    clpr: number;            // 종가
+    vs: number;              // 대비
 }
 
 // API 응답 타입
-export interface EtfApiResponse {
-    source: string;
-    fetched_at: string;
-    items: EtfItem[];
-}
+export type EtfApiResponse = EtfItem[];
 
 // 테이블 표시용 정리된 타입
 export interface EtfDisplayItem extends EtfItem {
-    id: string; // 고유 식별자 (basDt + bssIdxIdxNm 조합)
+    displayId: string;
 }

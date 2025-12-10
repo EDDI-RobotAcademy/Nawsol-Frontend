@@ -8,6 +8,7 @@ interface EtfTableProps {
 }
 
 export function EtfTable({ data, onRowClick }: EtfTableProps) {
+
     return (
         <div className="overflow-x-auto">
             <table className="min-w-full border-collapse">
@@ -71,7 +72,7 @@ export function EtfTable({ data, onRowClick }: EtfTableProps) {
                             {formatNumber(item.vs)}
                         </td>
                         <td className={`border border-zinc-300 dark:border-zinc-700 px-4 py-3 text-sm text-right font-medium ${getChangeColorClass(item.fltRt)}`}>
-                            {item.fltRt}%
+                            {formatNumber(item.fltRt) + "%"}
                         </td>
                         <td className="border border-zinc-300 dark:border-zinc-700 px-4 py-3 text-sm text-right text-zinc-700 dark:text-zinc-300">
                             {formatNumber(item.mkp)}
