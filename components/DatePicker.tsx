@@ -16,7 +16,7 @@ export function DatePicker({ value, onChange, label = "조회 날짜" }: DatePic
         return dateStr.replace(/-/g, "");
     };
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const inputDate = e.target.value; // YYYY-MM-DD
         const apiDate = formatToApiValue(inputDate); // YYYYMMDD
         onChange(apiDate);
