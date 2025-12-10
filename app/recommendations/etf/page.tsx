@@ -159,11 +159,11 @@ export default function EtfRecommendationPage() {
                                                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">{etf.bssIdxIdxNm || 'N/A'}</td>
                                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-zinc-700 dark:text-zinc-300">{etf.clpr?.toLocaleString() || '0'}원</td>
                                                         <td className={`px-4 py-3 whitespace-nowrap text-sm text-right font-semibold ${
-                                                            parseFloat(etf.fltRt || 0) > 0 ? 'text-red-600 dark:text-red-400' :
-                                                            parseFloat(etf.fltRt || 0) < 0 ? 'text-blue-600 dark:text-blue-400' :
+                                                            (etf.fltRt || 0) > 0 ? 'text-red-600 dark:text-red-400' :
+                                                            (etf.fltRt || 0) < 0 ? 'text-blue-600 dark:text-blue-400' :
                                                             'text-zinc-600 dark:text-zinc-400'
                                                         }`}>
-                                                            {parseFloat(etf.fltRt || 0) > 0 ? '+' : ''}{etf.fltRt || '0'}%
+                                                            {(etf.fltRt || 0) > 0 ? '+' : ''}{etf.fltRt || '0'}%
                                                         </td>
                                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-zinc-700 dark:text-zinc-300">
                                                             {etf.mrktTotAmt ? `${(etf.mrktTotAmt / 100000000).toLocaleString()}억원` : 'N/A'}
