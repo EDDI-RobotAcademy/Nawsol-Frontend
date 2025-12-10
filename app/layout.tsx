@@ -2,8 +2,9 @@
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Navbar from '../components/Navbar';
+import type { Metadata } from 'next';
 
-export const metadata = {
+export const metadata: Metadata = {
     title: 'MyApp',
 };
 

@@ -15,6 +15,8 @@ export default function Navbar() {
     const [isMobileVisualizeOpen, setIsMobileVisualizeOpen] = useState(false);
     const [isFinanceOpen, setIsFinanceOpen] = useState(false);
     const [isMobileFinanceOpen, setIsMobileFinanceOpen] = useState(false);
+    const [isRecommendOpen, setIsRecommendOpen] = useState(false);
+    const [isMobileRecommendOpen, setIsMobileRecommendOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -176,8 +178,39 @@ export default function Navbar() {
                             )}
                         </div>
 
-                        <Link 
-                            href="/myPage" 
+                        {/* 추천 재무 상품 드롭다운 */}
+                        <div
+                            className="relative"
+                            onMouseEnter={() => setIsRecommendOpen(true)}
+                            onMouseLeave={() => setIsRecommendOpen(false)}
+                        >
+                            <button
+                                className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-orange-600 hover:shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-1"
+                            >
+                                ✨ 추천 재무 상품
+                                <span className={`transition-transform duration-200 ${isRecommendOpen ? 'rotate-180' : ''}`}>
+                                    ▼
+                                </span>
+                            </button>
+
+                            {isRecommendOpen && (
+                                <div className="absolute top-[calc(100%-2px)] left-0 w-56 z-50">
+                                    <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+                                        <div className="pt-1">
+                                            <Link
+                                                href="/recommendations/etf"
+                                                className="block px-4 py-3 text-sm hover:bg-orange-600 transition-colors duration-200"
+                                            >
+                                                📊 ETF 상품 추천
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <Link
+                            href="/myPage"
                             className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-indigo-600 hover:shadow-md transition-all duration-200 hover:scale-105"
                         >
                             👤 MyPage
@@ -329,8 +362,32 @@ export default function Navbar() {
                         )}
                     </div>
 
-                    <Link 
-                        href="/myPage" 
+                    {/* 모바일 추천 재무 상품 드롭다운 */}
+                    <div>
+                        <button
+                            onClick={() => setIsMobileRecommendOpen(!isMobileRecommendOpen)}
+                            className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-orange-600 transition-all duration-200"
+                        >
+                            <span>✨ 추천 재무 상품</span>
+                            <span className={`transition-transform duration-200 ${isMobileRecommendOpen ? 'rotate-180' : ''}`}>
+                                ▼
+                            </span>
+                        </button>
+                        {isMobileRecommendOpen && (
+                            <div className="mt-2 ml-4 space-y-2">
+                                <Link
+                                    href="/recommendations/etf"
+                                    className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-orange-600 transition-all duration-200"
+                                    onClick={() => setIsMobileRecommendOpen(false)}
+                                >
+                                    📊 ETF 상품 추천
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    <Link
+                        href="/myPage"
                         className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-indigo-600 transition-all duration-200"
                     >
                         👤 MyPage

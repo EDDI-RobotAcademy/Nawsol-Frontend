@@ -10,6 +10,16 @@ import { EtfDisplayItem } from "@/types/etf";
 import { formatDateTime } from "@/utils/etfUtils";
 import {useEtfData} from "@/hooks/useEftData";
 
+// 기준 날짜로부터 n일 전/후 날짜를 YYYYMMDD 형식으로 반환
+function getDateOffset(daysOffset: number = 0, baseDate: Date = new Date()): string {
+    const targetDate = new Date(baseDate);
+    targetDate.setDate(targetDate.getDate() + daysOffset);
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const day = String(targetDate.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+}
+
 // 오늘 날짜를 YYYYMMDD 형식으로 반환
 function getTodayDate(): string {
     const now = new Date();
@@ -22,7 +32,7 @@ function getTodayDate(): string {
 export default function EtfPage() {
     const router = useRouter();
     const { user, isLoggedIn, loading: authLoading } = useAuth();
-    const [selectedDate, setSelectedDate] = useState<string>(getTodayDate());
+    const [selectedDate, setSelectedDate] = useState<string>(getDateOffset(-1)); // 어제 날짜 = -1일 (하루 전)
     const { data, loading, error, fetchedAt, fetchEtfData, refetch } = useEtfData();
 
     // 페이지 로드 시 데이터 자동 조회

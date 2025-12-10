@@ -1,17 +1,21 @@
 "use client";
 
-export default function StepActions({
-                                        onNext,
-                                        onSkip,
-                                        nextLabel = "다음",
-                                        nextDisabled = false,
-                                    }: {
-    onPrev?: () => void;
-    onNext?: () => void;
-    onSkip?: () => void;
+import React from "react";
+
+interface StepActionsProps {
+    onPrev?: React.MouseEventHandler<HTMLButtonElement>;
+    onNext?: React.MouseEventHandler<HTMLButtonElement>;
+    onSkip?: React.MouseEventHandler<HTMLButtonElement>;
     nextLabel?: string;
     nextDisabled?: boolean;
-}) {
+}
+
+export default function StepActions({
+    onNext,
+    onSkip,
+    nextLabel = "다음",
+    nextDisabled = false,
+}: StepActionsProps) {
     return (
         <div className="flex justify-end gap-3 mt-10">
             {onSkip && (
