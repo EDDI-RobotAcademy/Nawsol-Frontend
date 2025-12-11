@@ -1,4 +1,4 @@
-// Fund 상품 개별 아이템 타입 (백엔드 응답 형식)
+// 펀드 상품 개별 아이템 타입 (백엔드 응답 형식)
 export interface FundItem {
     id: number;              // id
     basDt: string;           // 기준일자 (ISO datetime)

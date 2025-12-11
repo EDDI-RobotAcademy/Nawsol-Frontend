@@ -210,7 +210,13 @@ export default function Navbar() {
                                             href="/fund"
                                             className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
                                         >
-                                            🥧 Fund 자료
+                                            🥧 펀드 자료
+                                        </Link>
+                                        <Link
+                                            href="/bond"
+                                            className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
+                                        >
+                                            🥧 채권 자료
                                         </Link>
                                     </div>
                                 </div>
@@ -426,7 +432,14 @@ export default function Navbar() {
                                     className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
                                     onClick={() => setIsMobileVisualizeOpen(false)}
                                 >
-                                    🥧 Fund 자료
+                                    🥧 펀드 자료
+                                </Link>
+                                <Link
+                                    href="/bond"
+                                    className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
+                                    onClick={() => setIsMobileVisualizeOpen(false)}
+                                >
+                                    🥧 채권 자료
                                 </Link>
                             </div>
                         )}

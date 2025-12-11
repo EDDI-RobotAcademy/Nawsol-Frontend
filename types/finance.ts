@@ -1,6 +1,6 @@
 export interface CreateFinanceRequest {
     user_id: string;
-    type: "ETF" | "펀드" | "채권";
+    type: "ETF" | "FUND" | "BOND";
     base_dt: string;
     key: string;
     value: string;

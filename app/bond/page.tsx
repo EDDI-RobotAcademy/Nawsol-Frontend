@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
-import { FundTable } from "@/components/fund/FundTable";
+import { BondTable } from "@/components/bond/BondTable";
 import { DatePicker } from "@/components/DatePicker";
 import { formatDateTime } from "@/utils/etfUtils";
-import { useFundData } from "@/hooks/useFundData";
-import { FundDisplayItem } from "@/types/fund";
+import { useBondData } from "@/hooks/useBondData";
+import { BondDisplayItem } from "@/types/bond";
 
 // 기준 날짜로부터 n일 전/후 날짜를 YYYYMMDD 형식으로 반환
 function getDateOffset(daysOffset: number = 0, baseDate: Date = new Date()): string {
@@ -20,17 +20,17 @@ function getDateOffset(daysOffset: number = 0, baseDate: Date = new Date()): str
     return `${year}${month}${day}`;
 }
 
-export default function FundPage() {
+export default function BondPage() {
     const router = useRouter();
     const { user, isLoggedIn } = useAuth();
     const [selectedDate, setSelectedDate] = useState<string>(getDateOffset(-1)); // 어제 날짜 = -1일 (하루 전)
-    const [selectedFundType, setSelectedFundType] = useState<string>("all"); // 선택된 펀드유형
-    const { data, loading, error, fetchedAt, fetchFundData, refetch } = useFundData();
+    const [selectedBondIssuer, setSelectedBondIssuer] = useState<string>("all"); // 선택된 채권발행자명
+    const { data, loading, error, fetchedAt, fetchBondData, refetch } = useBondData();
 
     // 페이지 로드 시 데이터 자동 조회
     useEffect(() => {
-        fetchFundData(selectedDate);
-    }, [selectedDate, fetchFundData]);
+        fetchBondData(selectedDate);
+    }, [selectedDate, fetchBondData]);
 
     // 날짜 변경 핸들러
     const handleDateChange = (date: string) => {
@@ -42,18 +42,24 @@ export default function FundPage() {
         refetch(selectedDate);
     };
 
-    // 고유한 펀드유형 목록 추출
-    const fundTypes = data
-        ? Array.from(new Set(data.map((item) => item.fndTp).filter((type): type is string => type !== null)))
+    // 행 클릭 핸들러 - 상세 페이지로 이동
+    const handleRowClick = (item: BondDisplayItem) => {
+        localStorage.setItem(`bond_${item.id}`, JSON.stringify(item));
+        router.push(`/bond/${item.id}`);
+    };
+
+    // 고유한 채권발행자명 목록 추출
+    const bondIssuers = data
+        ? Array.from(new Set(data.map((item) => item.bondIsurNm).filter((name): name is string => name !== null)))
+            .sort()
         : [];
 
     // 필터링된 데이터
-    const filteredData: FundDisplayItem[] = data
-        ? selectedFundType === "all"
+    const filteredData: BondDisplayItem[] = data
+        ? selectedBondIssuer === "all"
             ? data
-            : data.filter((item) => item.fndTp === selectedFundType)
+            : data.filter((item) => item.bondIsurNm === selectedBondIssuer)
         : [];
-
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-black py-8 px-4 sm:px-6 lg:px-8">
@@ -63,9 +69,9 @@ export default function FundPage() {
                     <div className="bg-gradient-to-r from-green-500 to-teal-600 px-6 py-6">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold text-white">펀드 정보</h1>
+                                <h1 className="text-3xl font-bold text-white">채권 정보</h1>
                                 <p className="text-green-100 mt-2">
-                                    펀드 상품 정보 조회
+                                    채권 상품 정보 조회
                                 </p>
                                 {isLoggedIn && user && (
                                     <p className="text-green-200 text-sm mt-1">
@@ -91,7 +97,7 @@ export default function FundPage() {
                         </div>
                     </div>
 
-                    {/* 필터 영역 (날짜 선택 및 펀드유형 필터) */}
+                    {/* 필터 영역 (날짜 선택 및 채권발행자명 필터) */}
                     <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
                         <div className="flex flex-col gap-4">
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -107,37 +113,25 @@ export default function FundPage() {
                                 )}
                             </div>
                             
-                            {/* 펀드유형 필터 */}
+                            {/* 채권발행자명 필터 */}
                             {!loading && data && data.length > 0 && (
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                        펀드유형 필터:
+                                    <label htmlFor="bond-issuer-filter" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                        채권발행자명 필터:
                                     </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        <button
-                                            onClick={() => setSelectedFundType("all")}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                selectedFundType === "all"
-                                                    ? "bg-green-600 text-white hover:bg-green-700"
-                                                    : "bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600"
-                                            }`}
-                                        >
-                                            전체
-                                        </button>
-                                        {fundTypes.map((type) => (
-                                            <button
-                                                key={type}
-                                                onClick={() => setSelectedFundType(type)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                                    selectedFundType === type
-                                                        ? "bg-green-600 text-white hover:bg-green-700"
-                                                        : "bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600"
-                                                }`}
-                                            >
-                                                {type}
-                                            </button>
+                                    <select
+                                        id="bond-issuer-filter"
+                                        value={selectedBondIssuer}
+                                        onChange={(e) => setSelectedBondIssuer(e.target.value)}
+                                        className="px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors max-w-md"
+                                    >
+                                        <option value="all">전체</option>
+                                        {bondIssuers.map((issuer) => (
+                                            <option key={issuer} value={issuer}>
+                                                {issuer}
+                                            </option>
                                         ))}
-                                    </div>
+                                    </select>
                                 </div>
                             )}
                         </div>
@@ -149,7 +143,7 @@ export default function FundPage() {
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 dark:border-green-400 mx-auto mb-4"></div>
                                 <p className="text-zinc-600 dark:text-zinc-400">
-                                    펀드 데이터를 불러오는 중...
+                                    채권 데이터를 불러오는 중...
                                 </p>
                             </div>
                         </div>
@@ -211,10 +205,10 @@ export default function FundPage() {
                                 />
                             </svg>
                             <h3 className="mt-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                선택한 펀드유형에 해당하는 데이터가 없습니다
+                                선택한 채권발행자명에 해당하는 데이터가 없습니다
                             </h3>
                             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                                다른 펀드유형을 선택해주세요.
+                                다른 채권발행자명을 선택해주세요.
                             </p>
                         </div>
                     )}
@@ -239,7 +233,7 @@ export default function FundPage() {
                                 조회된 데이터가 없습니다
                             </h3>
                             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                                선택한 날짜에 펀드드 데이터가 없습니다. 다른 날짜를 선택해주세요.
+                                선택한 날짜에 채권 데이터가 없습니다. 다른 날짜를 선택해주세요.
                             </p>
                         </div>
                     )}
@@ -248,20 +242,20 @@ export default function FundPage() {
                     {!loading && !error && filteredData.length > 0 && data && (
                         <div className="px-6 py-6">
                             <div className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                                {selectedFundType === "all" ? (
+                                {selectedBondIssuer === "all" ? (
                                     <>
                                         총{" "}
                                         <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                                             {filteredData.length}
                                         </span>
-                                        개의 펀드 상품
+                                        개의 채권 상품
                                     </>
                                 ) : (
                                     <>
                                         <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                                            {selectedFundType}
+                                            {selectedBondIssuer}
                                         </span>
-                                        {" "}유형{" "}
+                                        {" "}발행 채권{" "}
                                         <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                                             {filteredData.length}
                                         </span>
@@ -269,7 +263,7 @@ export default function FundPage() {
                                     </>
                                 )}
                             </div>
-                            <FundTable data={filteredData} />
+                            <BondTable data={filteredData} onRowClick={handleRowClick} />
                         </div>
                     )}
                 </div>
