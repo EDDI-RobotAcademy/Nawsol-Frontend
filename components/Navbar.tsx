@@ -35,7 +35,7 @@ export default function Navbar() {
 
     return (
         <nav className="bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* 로고 */}
                     <div className="flex-shrink-0">
