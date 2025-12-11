@@ -65,7 +65,7 @@ export default function Navbar() {
                             <button
                                 className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 hover:shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-1"
                             >
-                                📊 자료 분석
+                                🔍 자료 분석
                                 <span className={`transition-transform duration-200 ${isAnalysisOpen ? 'rotate-180' : ''}`}>
                                     ▼
                                 </span>
@@ -113,7 +113,7 @@ export default function Navbar() {
                             <button
                                 className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 hover:shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-1"
                             >
-                                📈 시각화 자료
+                                📉 시각화 자료
                                 <span className={`transition-transform duration-200 ${isVisualizeOpen ? 'rotate-180' : ''}`}>
                                     ▼
                                 </span>
@@ -158,7 +158,7 @@ export default function Navbar() {
                             <button
                                 className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 hover:shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-1"
                             >
-                                📈 금융 정보
+                                📰 금융 정보
                                 <span className={`transition-transform duration-200 ${isFinancialInfoOpen ? 'rotate-180' : ''}`}>
                                     ▼
                                 </span>
@@ -172,7 +172,7 @@ export default function Navbar() {
                                                 href="/news-search"
                                                 className="block px-4 py-3 text-sm hover:bg-purple-600 transition-colors duration-200"
                                             >
-                                                🥧 금융 뉴스 
+                                                📰 금융 뉴스 
                                             </Link>
                                         </div>
                                     </div>
@@ -189,7 +189,7 @@ export default function Navbar() {
                             <button
                                 className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 hover:shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-1"
                             >
-                                📈 재무 자료
+                                💼 재무 자료
                                 <span className={`transition-transform duration-200 ${isFinanceOpen ? 'rotate-180' : ''}`}>
                                     ▼
                                 </span>
@@ -203,20 +203,20 @@ export default function Navbar() {
                                                 href="/etf"
                                                 className="block px-4 py-3 text-sm hover:bg-purple-600 transition-colors duration-200"
                                             >
-                                                🥧 ETF 자료
+                                                📊 ETF 자료
                                             </Link>
                                         </div>
                                         <Link
                                             href="/fund"
                                             className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
                                         >
-                                            🥧 펀드 자료
+                                            💎 펀드 자료
                                         </Link>
                                         <Link
                                             href="/bond"
                                             className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
                                         >
-                                            🥧 채권 자료
+                                            🏦 채권 자료
                                         </Link>
                                     </div>
                                 </div>
@@ -246,7 +246,13 @@ export default function Navbar() {
                                                 href="/recommendations/etf"
                                                 className="block px-4 py-3 text-sm hover:bg-orange-600 transition-colors duration-200"
                                             >
-                                                📊 ETF 상품 추천
+                                                ⭐ ETF 상품 추천
+                                            </Link>
+                                            <Link
+                                                href="/recommendations/bond"
+                                                className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
+                                            >
+                                                💡 채권 상품 추천
                                             </Link>
                                         </div>
                                     </div>
@@ -283,7 +289,7 @@ export default function Navbar() {
                             onClick={handleSessionOut}
                             className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-700 hover:shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
                         >
-                            🚪 세션 삭제
+                            🗑️ 세션 삭제
                         </button>
                     </div>
                 </div>
@@ -303,7 +309,7 @@ export default function Navbar() {
                             onClick={() => setIsMobileAnalysisOpen(!isMobileAnalysisOpen)}
                             className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
                         >
-                            <span>📊 자료 분석</span>
+                            <span>🔍 자료 분석</span>
                             <span className={`transition-transform duration-200 ${isMobileAnalysisOpen ? 'rotate-180' : ''}`}>
                                 ▼
                             </span>
@@ -348,7 +354,7 @@ export default function Navbar() {
                             onClick={() => setIsMobileVisualizeOpen(!isMobileVisualizeOpen)}
                             className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
                         >
-                            <span>📈 시각화 자료</span>
+                            <span>📉 시각화 자료</span>
                             <span className={`transition-transform duration-200 ${isMobileVisualizeOpen ? 'rotate-180' : ''}`}>
                                 ▼
                             </span>
@@ -389,7 +395,7 @@ export default function Navbar() {
                             onClick={() => setIsMobileFinancialInfoOpen(!isMobileFinancialInfoOpen)}
                             className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
                         >
-                            <span>📈 금융 정보</span>
+                            <span>📰 금융 정보</span>
                             <span className={`transition-transform duration-200 ${isMobileFinancialInfoOpen ? 'rotate-180' : ''}`}>
                                 ▼
                             </span>
@@ -401,7 +407,7 @@ export default function Navbar() {
                                     className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
                                     onClick={() => setIsMobileFinancialInfoOpen(false)}
                                 >
-                                    🥧 금융 뉴스 
+                                    📰 금융 뉴스 
                                 </Link>
                             </div>
                         )}
@@ -413,7 +419,7 @@ export default function Navbar() {
                             onClick={() => setIsMobileFinanceOpen(!isMobileFinanceOpen)}
                             className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
                         >
-                            <span>📈 재무 자료</span>
+                            <span>💼 재무 자료</span>
                             <span className={`transition-transform duration-200 ${isMobileFinanceOpen ? 'rotate-180' : ''}`}>
                                 ▼
                             </span>
@@ -425,21 +431,21 @@ export default function Navbar() {
                                     className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
                                     onClick={() => setIsMobileFinanceOpen(false)}
                                 >
-                                    🥧 ETF 자료
+                                    📊 ETF 자료
                                 </Link>
                                 <Link
                                     href="/fund"
                                     className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
-                                    onClick={() => setIsMobileVisualizeOpen(false)}
+                                    onClick={() => setIsMobileFinanceOpen(false)}
                                 >
-                                    🥧 펀드 자료
+                                    💎 펀드 자료
                                 </Link>
                                 <Link
                                     href="/bond"
                                     className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
-                                    onClick={() => setIsMobileVisualizeOpen(false)}
+                                    onClick={() => setIsMobileFinanceOpen(false)}
                                 >
-                                    🥧 채권 자료
+                                    🏦 채권 자료
                                 </Link>
                             </div>
                         )}
@@ -463,7 +469,14 @@ export default function Navbar() {
                                     className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-orange-600 transition-all duration-200"
                                     onClick={() => setIsMobileRecommendOpen(false)}
                                 >
-                                    📊 ETF 상품 추천
+                                    ⭐ ETF 상품 추천
+                                </Link>
+                                <Link
+                                    href="/recommendations/bond"
+                                    className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
+                                    onClick={() => setIsMobileRecommendOpen(false)}
+                                >
+                                    💡 채권 상품 추천
                                 </Link>
                             </div>
                         )}
