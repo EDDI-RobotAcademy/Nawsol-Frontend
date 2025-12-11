@@ -198,7 +198,7 @@ export default function Navbar() {
                             {isFinanceOpen && (
                                 <div className="absolute top-[calc(100%-2px)] left-0 w-56 z-50">
                                     <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
-                                        <div className="pt-1">
+                                    <div className="pt-1">
                                             <Link
                                                 href="/etf"
                                                 className="block px-4 py-3 text-sm hover:bg-purple-600 transition-colors duration-200"
@@ -206,6 +206,12 @@ export default function Navbar() {
                                                 🥧 ETF 자료
                                             </Link>
                                         </div>
+                                        <Link
+                                            href="/fund"
+                                            className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
+                                        >
+                                            🥧 Fund 자료
+                                        </Link>
                                     </div>
                                 </div>
                             )}
@@ -414,6 +420,13 @@ export default function Navbar() {
                                     onClick={() => setIsMobileFinanceOpen(false)}
                                 >
                                     🥧 ETF 자료
+                                </Link>
+                                <Link
+                                    href="/fund"
+                                    className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
+                                    onClick={() => setIsMobileVisualizeOpen(false)}
+                                >
+                                    🥧 Fund 자료
                                 </Link>
                             </div>
                         )}
