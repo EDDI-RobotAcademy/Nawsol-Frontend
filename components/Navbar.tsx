@@ -13,6 +13,8 @@ export default function Navbar() {
     const [isMobileAnalysisOpen, setIsMobileAnalysisOpen] = useState(false);
     const [isVisualizeOpen, setIsVisualizeOpen] = useState(false);
     const [isMobileVisualizeOpen, setIsMobileVisualizeOpen] = useState(false);
+    const [isFinancialInfoOpen, setIsFinancialInfoOpen] = useState(false);
+    const [isMobileFinancialInfoOpen, setIsMobileFinancialInfoOpen] = useState(false);
     const [isFinanceOpen, setIsFinanceOpen] = useState(false);
     const [isMobileFinanceOpen, setIsMobileFinanceOpen] = useState(false);
     const [isRecommendOpen, setIsRecommendOpen] = useState(false);
@@ -147,6 +149,37 @@ export default function Navbar() {
                                 </div>
                             )}
                         </div>
+
+                        <div 
+                            className="relative"
+                            onMouseEnter={() => setIsFinancialInfoOpen(true)}
+                            onMouseLeave={() => setIsFinancialInfoOpen(false)}
+                        >
+                            <button
+                                className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 hover:shadow-md transition-all duration-200 hover:scale-105 flex items-center gap-1"
+                            >
+                                📈 금융 정보
+                                <span className={`transition-transform duration-200 ${isFinancialInfoOpen ? 'rotate-180' : ''}`}>
+                                    ▼
+                                </span>
+                            </button>
+                            
+                            {isFinancialInfoOpen && (
+                                <div className="absolute top-[calc(100%-2px)] left-0 w-56 z-50">
+                                    <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+                                        <div className="pt-1">
+                                            <Link
+                                                href="/news-search"
+                                                className="block px-4 py-3 text-sm hover:bg-purple-600 transition-colors duration-200"
+                                            >
+                                                🥧 금융 뉴스 
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
 
                         <div
                             className="relative"
@@ -338,6 +371,30 @@ export default function Navbar() {
                         )}
                     </div>
 
+                    {/* 모바일 금융 정보 드롭다운 */ }
+                    <div>
+                        <button
+                            onClick={() => setIsMobileFinancialInfoOpen(!isMobileFinancialInfoOpen)}
+                            className="w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
+                        >
+                            <span>📈 금융 정보</span>
+                            <span className={`transition-transform duration-200 ${isMobileFinancialInfoOpen ? 'rotate-180' : ''}`}>
+                                ▼
+                            </span>
+                        </button>
+                        {isMobileFinancialInfoOpen && (
+                            <div className="mt-2 ml-4 space-y-2">
+                                <Link
+                                    href="/news-search"
+                                    className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-purple-600 transition-all duration-200"
+                                    onClick={() => setIsMobileFinancialInfoOpen(false)}
+                                >
+                                    🥧 금융 뉴스 
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                    
                     {/* 모바일 재무 자료 드롭다운 */ }
                     <div>
                         <button
