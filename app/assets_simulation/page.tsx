@@ -203,9 +203,10 @@ function MarkdownRenderer({ content }: MarkdownRendererProps) {
 }
 
 export default function AssetsSimulationPage() {
-    const [result, setResult] = useState<string | null>(null);
+    const [result, setResult] = useState<any>(null);  // 🔥 any로 변경 (객체)
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [requestingAI, setRequestingAI] = useState(false);  // 🔥 AI 상세 분석 요청 상태
     const { isLoggedIn } = useAuth();
     const router = useRouter();
 
@@ -245,16 +246,58 @@ export default function AssetsSimulationPage() {
         fetchFutureAssets();
     }, [isLoggedIn, router]);
 
-    if (loading) {
+    // 🔥 AI 상세 분석 요청 함수
+    const handleAIDetailedAnalysis = async () => {
+        try {
+            setRequestingAI(true);
+            setError(null);
+
+            const response = await apiFetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/documents-multi-agents/future-assets-ai-detailed`,
+                {
+                    method: "POST",
+                    credentials: "include",
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: "AI 분석 실패" }));
+                throw new Error(errorData.detail || `HTTP ${response.status}: AI 분석 실패`);
+            }
+
+            const data = await response.json();
+            setResult(data);  // 새로운 AI 분석 결과로 업데이트
+        } catch (err) {
+            console.error("[AssetsSimulation] AI detailed analysis failed:", err);
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "AI 상세 분석에 실패했습니다."
+            );
+        } finally {
+            setRequestingAI(false);
+        }
+    };
+
+    if (loading || requestingAI) {
         return (
             <LoadingSpinner
-                messages={[
-                    "재무 데이터를 가져오는 중...",
-                    "AI가 소득 증가 시나리오를 계산하고 있습니다...",
-                    "자산 분배 전략을 수립하고 있습니다...",
-                    "세액 절감 방안을 분석 중입니다...",
-                    "거의 완료되었습니다!"
-                ]}
+                messages={
+                    requestingAI
+                        ? [
+                            "AI가 상세 분석을 시작합니다...",
+                            "소득 패턴을 재분석하고 있습니다...",
+                            "개인화된 자산 전략을 수립 중입니다...",
+                            "거의 완료되었습니다!"
+                          ]
+                        : [
+                            "재무 데이터를 가져오는 중...",
+                            "AI가 소득 증가 시나리오를 계산하고 있습니다...",
+                            "자산 분배 전략을 수립하고 있습니다...",
+                            "세액 절감 방안을 분석 중입니다...",
+                            "거의 완료되었습니다!"
+                          ]
+                }
                 interval={1800}
             />
         );
@@ -276,7 +319,7 @@ export default function AssetsSimulationPage() {
         );
     }
 
-    if (!result) {
+    if (!result || !result.advice) {
         return (
             <div className="flex justify-center items-center h-screen bg-zinc-50 dark:bg-black">
                 <p className="text-zinc-600 dark:text-zinc-400">
@@ -298,7 +341,56 @@ export default function AssetsSimulationPage() {
 
                     {/* 콘텐츠 */}
                     <div className="px-6 py-8">
-                        <MarkdownRenderer content={result} />
+                        {/* 🔥 학습 기반 조언 안내 (method가 "learned"인 경우) */}
+                        {result.method === "learned" && (
+                            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                                            💡 <strong>학습된 조언</strong>
+                                        </p>
+                                        <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                            유사한 패턴의 사용자에게 제공된 조언입니다 (유사도: {result.similarity_score?.toFixed(1)}점, {result.use_count}회 재사용)
+                                        </p>
+                                    </div>
+                                    {result.can_request_ai && (
+                                        <button
+                                            onClick={handleAIDetailedAnalysis}
+                                            disabled={requestingAI}
+                                            className="ml-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white text-sm font-semibold rounded-lg hover:from-purple-600 hover:to-blue-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            🤖 AI 상세 분석
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 🔥 새로운 GPT 분석 안내 (method가 "gpt_new"인 경우) */}
+                        {result.method === "gpt_new" && (
+                            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                                <p className="text-sm text-green-800 dark:text-green-200">
+                                    ✨ <strong>새로운 AI 분석</strong>
+                                </p>
+                                <p className="text-xs text-green-600 dark:text-green-300 mt-1">
+                                    당신의 소비 패턴에 맞춘 개인화된 조언입니다
+                                </p>
+                            </div>
+                        )}
+
+                        {/* 🔥 AI 상세 분석 결과 안내 (method가 "gpt_detailed"인 경우) */}
+                        {result.method === "gpt_detailed" && (
+                            <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                                <p className="text-sm text-purple-800 dark:text-purple-200">
+                                    🎯 <strong>AI 상세 분석 완료</strong>
+                                </p>
+                                <p className="text-xs text-purple-600 dark:text-purple-300 mt-1">
+                                    AI가 당신의 재무 상황을 심층 분석한 결과입니다
+                                </p>
+                            </div>
+                        )}
+
+                        <MarkdownRenderer content={result.advice} />
                     </div>
                 </div>
             </div>
