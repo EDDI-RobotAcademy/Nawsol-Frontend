@@ -11,6 +11,7 @@ interface EtfRecommendationResponse {
     total_income: number;
     total_expense: number;
     available_amount: number;
+    surplus_ratio?: number;  // 저축률
     recommendation_reason: string;
     items: any[];
 }
@@ -24,7 +25,10 @@ export default function EtfRecommendationPage() {
         totalIncome: number;
         totalExpense: number;
         availableAmount: number;
+        surplusRatio: number;
         reason: string;
+        apiUsed: string;
+        showAdvancedInfo: boolean;  // 저축률 표시 여부
     } | null>(null);
 
     const fetchEtfRecommendation = async () => {
@@ -32,29 +36,79 @@ export default function EtfRecommendationPage() {
             setLoading(true);
             setError(null);
 
-            const response = await apiFetch(
-                `${process.env.NEXT_PUBLIC_API_BASE_URL}/etf-recommendation/etf-info`,
+            // 먼저 /recommend API 시도 (소득+지출 정보 필요)
+            let response = await apiFetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/etf-recommendation/recommend`,
                 {
                     method: "GET",
                     credentials: "include",
                 }
             );
 
+            let result: EtfRecommendationResponse;
+            let apiUsed = "recommend";
+
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({
-                    detail: "ETF 추천 데이터 조회 실패"
-                }));
-                throw new Error(errorData.detail || `HTTP ${response.status}: 조회 실패`);
+                // HTTP 에러 시 /etf-info로 fallback
+                console.log("[DEBUG] /recommend HTTP error, falling back to /etf-info");
+                
+                response = await apiFetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/etf-recommendation/etf-info`,
+                    {
+                        method: "GET",
+                        credentials: "include",
+                    }
+                );
+                apiUsed = "etf-info";
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({
+                        detail: "ETF 추천 데이터 조회 실패"
+                    }));
+                    throw new Error(errorData.detail || `HTTP ${response.status}: 조회 실패`);
+                }
             }
 
-            const result: EtfRecommendationResponse = await response.json();
+            result = await response.json();
+
+            // 소득+지출 정보가 둘 다 있는지 확인
+            const hasCompleteData = result.total_income > 0 && result.total_expense > 0;
+
+            // 데이터가 불완전하면 /etf-info로 재시도
+            if (!hasCompleteData && apiUsed === "recommend") {
+                console.log("[DEBUG] Incomplete financial data, retrying with /etf-info");
+                
+                response = await apiFetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/etf-recommendation/etf-info`,
+                    {
+                        method: "GET",
+                        credentials: "include",
+                    }
+                );
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({
+                        detail: "ETF 추천 데이터 조회 실패"
+                    }));
+                    throw new Error(errorData.detail || `HTTP ${response.status}: 조회 실패`);
+                }
+                
+                result = await response.json();
+                apiUsed = "etf-info";
+            }
+
+            // source가 "recommendation"이고 소득+지출이 모두 있으면 고급 정보 표시
+            const showAdvancedInfo = result.source === "recommendation" && hasCompleteData;
 
             // 추천 정보 설정
             setRecommendationInfo({
                 totalIncome: result.total_income || 0,
                 totalExpense: result.total_expense || 0,
                 availableAmount: result.available_amount || 0,
-                reason: result.recommendation_reason || ""
+                surplusRatio: result.surplus_ratio || 0,
+                reason: result.recommendation_reason || "",
+                apiUsed: showAdvancedInfo ? "recommend" : "etf-info",
+                showAdvancedInfo: showAdvancedInfo  // 저축률 표시 여부
             });
 
             // ETF 데이터 가공
@@ -99,6 +153,11 @@ export default function EtfRecommendationPage() {
                                 <p className="text-orange-100 mt-2">
                                     사용자 재무 상황에 맞는 ETF 상품 추천
                                 </p>
+                                {recommendationInfo && (
+                                    <p className="text-orange-200 text-xs mt-1">
+                                        📡 API: {recommendationInfo.apiUsed}
+                                    </p>
+                                )}
                             </div>
                             <button
                                 onClick={fetchEtfRecommendation}
@@ -113,30 +172,41 @@ export default function EtfRecommendationPage() {
                     {/* 추천 정보 카드 */}
                     {recommendationInfo && !loading && (
                         <div className="px-6 py-4 bg-gradient-to-r from-orange-50 to-pink-50 dark:from-orange-900/20 dark:to-pink-900/20 border-b border-zinc-200 dark:border-zinc-700">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div className={`grid grid-cols-2 ${recommendationInfo.showAdvancedInfo ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-4`}>
                                 <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow">
                                     <p className="text-sm text-zinc-600 dark:text-zinc-400">총 소득</p>
                                     <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                        {recommendationInfo.totalIncome.toLocaleString()}원
+                                        {(recommendationInfo.totalIncome || 0).toLocaleString()}원
                                     </p>
                                 </div>
                                 <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow">
                                     <p className="text-sm text-zinc-600 dark:text-zinc-400">총 지출</p>
                                     <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                                        {recommendationInfo.totalExpense.toLocaleString()}원
+                                        {(recommendationInfo.totalExpense || 0).toLocaleString()}원
                                     </p>
                                 </div>
                                 <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow">
                                     <p className="text-sm text-zinc-600 dark:text-zinc-400">가용 자산</p>
                                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                        {recommendationInfo.availableAmount.toLocaleString()}원
+                                        {(recommendationInfo.availableAmount || 0).toLocaleString()}원
                                     </p>
                                 </div>
+                                {/* 저축률은 showAdvancedInfo가 true일 때만 표시 */}
+                                {recommendationInfo.showAdvancedInfo && (
+                                    <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow">
+                                        <p className="text-sm text-zinc-600 dark:text-zinc-400">저축률</p>
+                                        <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                                            {(recommendationInfo.surplusRatio || 0).toFixed(1)}%
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                             {/* 추천된 ETF 표 */}
                             {data && data.length > 0 && (
                                 <div className="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow mb-4">
-                                    <h3 className="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-3">🎯 AI 추천 ETF 목록</h3>
+                                    <h3 className="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-3">
+                                        🎯 AI 추천 ETF 목록 ({data.length}개)
+                                    </h3>
                                     <div className="overflow-x-auto">
                                         <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                                             <thead className="bg-zinc-50 dark:bg-zinc-900">
@@ -148,7 +218,7 @@ export default function EtfRecommendationPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white dark:bg-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-700">
-                                                {data.slice(0, 3).map((etf, idx) => (
+                                                {data.map((etf, idx) => (
                                                     <tr key={idx} className="hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors">
                                                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-zinc-900 dark:text-zinc-100">{etf.bssIdxIdxNm || 'N/A'}</td>
                                                         <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-zinc-700 dark:text-zinc-300">{etf.clpr?.toLocaleString() || '0'}원</td>
@@ -294,8 +364,6 @@ export default function EtfRecommendationPage() {
                             </p>
                         </div>
                     )}
-
-                    {/* ETF 테이블 제거 - 위에 추천 ETF 표로 대체됨 */}
                 </div>
             </div>
         </div>
