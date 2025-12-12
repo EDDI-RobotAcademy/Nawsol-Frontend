@@ -255,6 +255,12 @@ export default function Navbar() {
                                                 ⭐ ETF 상품 추천
                                             </Link>
                                             <Link
+                                                href="/recommendations/fund"
+                                                className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
+                                            >
+                                                💡 펀드 상품 추천
+                                            </Link>
+                                            <Link
                                                 href="/recommendations/bond"
                                                 className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
                                             >
@@ -483,6 +489,13 @@ export default function Navbar() {
                                     onClick={() => setIsMobileRecommendOpen(false)}
                                 >
                                     ⭐ ETF 상품 추천
+                                </Link>
+                                <Link
+                                    href="/recommendations/fund"
+                                    className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
+                                    onClick={() => setIsMobileRecommendOpen(false)}
+                                >
+                                    💡 펀드 상품 추천
                                 </Link>
                                 <Link
                                     href="/recommendations/bond"
