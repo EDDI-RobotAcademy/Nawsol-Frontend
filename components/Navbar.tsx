@@ -174,6 +174,12 @@ export default function Navbar() {
                                             >
                                                 📰 금융 뉴스 
                                             </Link>
+                                            <Link
+                                                href="/community-report"
+                                                className="block px-4 py-3 text-sm hover:bg-green-600 transition-colors duration-200 border-t border-gray-700"
+                                            >
+                                                🤓 금융 커뮤니티
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
@@ -408,6 +414,13 @@ export default function Navbar() {
                                     onClick={() => setIsMobileFinancialInfoOpen(false)}
                                 >
                                     📰 금융 뉴스 
+                                </Link>
+                                <Link
+                                    href="/community-report"
+                                    className="block px-4 py-2 rounded-lg text-sm font-medium bg-gray-700/50 hover:bg-green-600 transition-all duration-200"
+                                    onClick={() => setIsMobileFinancialInfoOpen(false)}
+                                >
+                                    🤓 금융 커뮤니티
                                 </Link>
                             </div>
                         )}
